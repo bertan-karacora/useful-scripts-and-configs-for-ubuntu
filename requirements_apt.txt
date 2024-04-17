@@ -1,0 +1,17 @@
+build-essential
+ca-certificates
+cmake
+cuda
+curl
+imagemagick
+gdb
+ghostscript
+git
+gzip
+python-is-python3
+python3
+python3-pip
+python3-venv
+unzip
+wget
+x11-apps
