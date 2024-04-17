@@ -1,0 +1,173 @@
+alias sudo="sudo "
+
+function update {
+    sudo apt update && sudo apt upgrade -y
+}
+
+function replace_filename_spaces {
+    find . \
+        -name "* *" \
+        -print0 |
+        sort -rz |
+        xargs -0 -I{} \
+            bash -c ' \
+		mv \
+			-v \
+			"$1" "$(dirname "$1")/$(basename "${1// /_}")" \
+	' -- {}
+}
+
+function compress_pdfs {
+    find . \
+        -type f \
+        -name "*.pdf" \
+        -size +1M \
+        -print0 |
+        xargs -0 -I{} \
+            bash -c '\
+		gs \
+			-sDEVICE=pdfwrite \
+			-dPDFSETTINGS=/default \
+			-dQUIET \
+			-o "$1.compressed" \
+			"$1" \
+		&& mv "$1.compressed" "$1" \
+		&& echo "Compressed $1." \
+	' -- {}
+}
+
+function merge_pdfs {
+    gs \
+        -sDEVICE=pdfwrite \
+        -dPDFSETTINGS=/default \
+        -dQUIET \
+        -o "$1.merged" \
+        "$@" >/dev/null &&
+        mv "$1.merged" "$1" &&
+        echo "Merged into $1."
+}
+
+function remove_metadata_pdfs {
+    find . \
+        -type f \
+        -name "*.pdf" \
+        -print0 |
+        xargs -0 -I{} \
+            bash -c '\
+		gs \
+			-sDEVICE=pdfwrite \
+			-dPDFSETTINGS=/default \
+			-dQUIET \
+			-o "$1.withoutMetadata" \
+			"$1" \
+			-c "[ /Title () /Author () /Keywords () /Subject () /DOCINFO pdfmark" \
+		&& mv "$1.withoutMetadata" "$1" \
+		&& echo "Removed metadata from $1." \
+	' -- {}
+}
+
+function fix_pdfs {
+    replace_filename_spaces &&
+        compress_pdfs &&
+        remove_metadata_pdfs
+}
+
+function remove_zone_identifiers {
+    find . \
+        -type f \
+        -name "*:Zone.Identifier" \
+        -print \
+        -delete
+}
+
+alias rzi="remove_zone_identifiers"
+
+function ssh_uni {
+    # Config
+    local host_login="login-stud.informatik.uni-bonn.de"
+    local host_destination_default="robo18"
+    local username_default="karacora"
+    local ports_default="9999"
+
+    function echo_help {
+        echo "Custom SSH command for connecting to a network node of the University of Bonn."
+        echo "Jumps over $host_login if destination host is not directly reachable."
+        echo "Ports [$ports_default] are always forwarded."
+        echo
+        echo "Usage:"
+        echo "  ssh_uni [-H <host>] [-U <username>] <port1> <port2> ..."
+        echo
+        echo "Options:"
+        echo "  -h              Display this help message and exit."
+        echo "  -H HOST         Destination host name. Default is \"$host_destination_default\"."
+        echo "  -U USERNAME     Username at destination host. Default is \"$username_default\"."
+        echo
+    }
+
+    function parse_args {
+        while getopts ":hH:U:" opt; do
+            case $opt in
+            h)
+                echo_help
+                exit 0
+                ;;
+            H)
+                host_destination="$OPTARG"
+                ;;
+            U)
+                username="$OPTARG"
+                ;;
+            \?)
+                echo "Invalid option -$OPTARG" >&2
+                exit 1
+                ;;
+            :)
+                echo "Option -$OPTARG requires an argument." >&2
+                exit 1
+                ;;
+            esac
+        done
+        # Shift out parsed options to get positional parameters
+        shift $((OPTIND - 1))
+        ports+="$@"
+
+        echo "$host_destination $username $ports"
+    }
+
+    function ping_check {
+        local ping_cmd="ping "
+        ping_cmd+="$host_destination "
+        ping_cmd+="-c 1 "
+        ping_cmd+="&> /dev/null "
+
+        eval "$ping_cmd"
+        local exitstatus="$?"
+        echo "$(($exitstatus == 0 ? 1 : 0))"
+    }
+
+    function construct_cmd {
+        local ssh_cmd="ssh "
+        ssh_cmd+="$username@$host_destination "
+
+        if [ $(ping_check) == 0 ]; then
+            ssh_cmd+="-J $username@$host_login "
+        fi
+
+        for port in $ports; do
+            ssh_cmd+="-L ${port}:localhost:${port} "
+        done
+
+        echo "$ssh_cmd"
+    }
+
+    local host_destination="$host_destination_default"
+    local username="$username_default"
+    local ports="$ports_default "
+
+    local vals_parsed=$(parse_args "$@")
+    read -r host_destination username ports <<<"$vals_parsed"
+
+    local ssh_cmd=$(construct_cmd)
+    echo "$ssh_cmd"
+    eval "$ssh_cmd"
+}
