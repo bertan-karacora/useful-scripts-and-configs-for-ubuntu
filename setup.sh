@@ -55,14 +55,19 @@ setup_ssh() {
 }
 
 setup_configs() {
-    echo "Collecting configs..."
+    echo "Collecting scripts and configs..."
     REPO_NAME="useful-scripts-and-configs-ais"
     REPO_SSH="git@github.com:bertan-karacora/$REPO_NAME.git"
     if [ ! -d "$REPO_NAME" ]; then
         git clone "$REPO_SSH"
     fi
     cp $REPO_NAME/.bash_aliases ~/.bash_aliases
-    echo "Collected configs"
+    # TODO:check
+    cp $REPO_NAME/.bash_scripts ~/.bash_scripts
+    echo "if [ -f ~/.bash_scripts ]; then" >>~/.bashrc
+    echo "    . ~/.bash_scripts" >>~/.bashrc
+    echo "fi" >>~/.bashrc
+    echo "Collected scripts and configs"
 }
 
 install_cuda() {
