@@ -168,6 +168,5 @@ function ssh_uni {
     read -r host_destination username ports <<<"$vals_parsed"
 
     local ssh_cmd=$(construct_cmd)
-    echo "$ssh_cmd"
     eval "$ssh_cmd"
 }
