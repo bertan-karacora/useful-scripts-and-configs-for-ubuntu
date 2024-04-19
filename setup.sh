@@ -5,7 +5,6 @@ set -euo pipefail
 source libs/io_utils.sh
 
 readonly name_repo="useful-scripts-and-configs-ais"
-readonly ssh_repo="git@github.com:bertan-karacora/$name_repo.git"
 
 setup_libs() {
     local string_bash_libs="$(<bash_libs.sh)"
