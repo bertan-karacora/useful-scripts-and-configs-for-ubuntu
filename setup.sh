@@ -68,7 +68,6 @@ setup() {
     ./scripts/disable_apt_marketing_message.sh
     ./scripts/setup_git.sh
     ./scripts/setup_ssh.sh
-    ./scripts/install_chrome.sh
 }
 
 main() {
