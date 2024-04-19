@@ -1,7 +1,0 @@
-if [ -d "~/useful-scripts-and-configs-ais/scripts" ]; then
-    for script in useful-scripts-and-configs-ais/scripts/*; do
-        if [ -f "$script" ] && [ -r "$script" ]; then
-            . "$script"
-        fi
-    done
-fi

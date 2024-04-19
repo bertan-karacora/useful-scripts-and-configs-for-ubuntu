@@ -1,33 +1,29 @@
-# Useful scripts and configs for my Linux setup at the AIS group
+# Useful scripts and configs for my setup at the AIS group at the University of Bonn
 
-A collection of useful scripts and configs I created.
-
-Known to work with Ubuntu 22.04.
+A collection of useful scripts and configs.
 
 ## Usage
 
-1. Download the setup script. Alternatively, you can also copy its content to a new file (mind CRLF conversion!). For example:
+1. Download this repository. For example:
 
-```bash
-cd ~
-sudo apt install wget
-wget https://raw.githubusercontent.com/bertan-karacora/useful-script-and-configs-for-wsl/main/setup
-```
+    ```bash
+    cd ~
+    sudo apt install wget
+    wget https://github.com/bertan-karacora/useful-scripts-and-configs-ais/archive/refs/heads/main.zip
+    unzip main.zip
+    rm main.zip
+    mv useful-scripts-and-configs-ais-main useful-scripts-and-configs-ais
+    ```
 
-2. Make sure to give execution permission using
+2. Make sure to give execution permission for setup script using
 
-```bash
-chmod +x ./setup.sh
-```
+    ```bash
+    cd useful-scripts-and-configs-ais
+    chmod +x setup.sh
+    ```
 
-3. Run it.
+3. Run it with sudo.
 
-```bash
-./setup.sh
-```
-
-4. Cleanup.
-
-```bash
-rm ./setup.sh
-```
+    ```bash
+    sudo ./setup.sh
+    ```

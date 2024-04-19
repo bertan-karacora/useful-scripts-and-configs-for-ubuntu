@@ -1,128 +1,80 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
-disable_sudo_password() {
-    USER="$(whoami)"
-    ENTRY="$USER ALL=(ALL) NOPASSWD:ALL"
-    FILE="/etc/sudoers.d/$USER"
+set -euo pipefail
 
-    echo "Disabling sudo password for user $USER..."
-    if [ -f "$FILE" ] || [ -n "$(sudo grep -qs "$ENTRY" "$FILE")" ]; then
-        echo "Sudo password for user $USER already disabled"
-    else
-        echo "$USER ALL=(ALL) NOPASSWD:ALL" | sudo EDITOR='tee -a' visudo --quiet --file=/etc/sudoers.d/"$USER" >/dev/null
+source libs/io_utils.sh
 
-        echo "Disabled password for user $USER in file $FILE"
-    fi
+readonly name_repo="useful-scripts-and-configs-ais"
+readonly ssh_repo="git@github.com:bertan-karacora/$name_repo.git"
+
+setup_libs() {
+    local string_bash_libs="$(<bash_libs.sh)"
+    local string_bashrc="
+if [ -f ~/.bash_libs ]; then
+    . ~/.bash_libs
+fi"
+
+    echo "Setting up bash functions ..."
+
+    append_if_not_contained ~/.bash_libs "$string_bash_libs"
+    append_if_not_contained ~/.bashrc "$string_bashrc"
+
+    echo "Setting up bash functions finished"
 }
 
-update() {
-    echo "Updating packages..."
-    sudo apt-get -qq update && sudo apt-get -qq upgrade -y
-    echo "Updated packages..."
+setup_aliases() {
+    local string_bash_aliases="$(<bash_aliases.sh)"
+    local string_bashrc="
+if [ -f ~/.bash_aliases ]; then
+    . ~/.bash_aliases
+fi"
+
+    echo "Setting up bash aliases ..."
+
+    append_if_not_contained ~/.bash_aliases "$string_bash_aliases"
+    append_if_not_contained ~/.bashrc "$string_bashrc"
+
+    echo "Setting up bash aliases finished"
+
 }
 
-setup_git() {
-    echo "Installing Git..."
-    sudo apt-get -qq install git
-    echo "Installed git"
+setup_scripts() {
+    local string_bashrc="
+export PATH=\$PATH:~/$name_repo/scripts"
 
-    echo "Configuring Git..."
+    echo "Setting up scripts ..."
 
-    if [ -z "$(git config --global user.name)" ]; then
-        echo "Your name: "
-        read -r NAME
-        git config --global user.name "$NAME"
-    fi
+    append_if_not_contained ~/.bashrc "$string_bashrc"
 
-    if [ -z "$(git config --global user.email)" ]; then
-        echo "Your email: "
-        read -r EMAIL
-        git config --global user.email "$EMAIL"
-    fi
-
-    git config --global pull.rebase true
-    echo "Configured Git"
+    echo "Setting up scripts finished"
 }
 
-setup_ssh() {
-    # TODO
-    echo "Configuring SSH..."
-    # echo "Your username: "
-    # read -r NAME
-    # cp -r /mnt/c/Users/"$NAME"/.ssh/id_* ~/.ssh
-    # chmod 600 ~/.ssh/id_*
-    # echo "Configured SSH"
+setup_packages() {
+    echo "Installing packages ..."
+
+    cat requirements_apt.txt |
+        xargs sudo apt-get install -y -qq
+
+    echo "Installing packages finished"
 }
 
-setup_configs() {
-    echo "Collecting scripts and configs..."
-    REPO_NAME="useful-scripts-and-configs-ais"
-    REPO_SSH="git@github.com:bertan-karacora/$REPO_NAME.git"
-    if [ ! -d "$REPO_NAME" ]; then
-        git clone "$REPO_SSH"
-    fi
-    cp $REPO_NAME/.bash_aliases ~/.bash_aliases
-    # TODO:check
-    cp $REPO_NAME/.bash_scripts ~/.bash_scripts
-    echo "if [ -f ~/.bash_scripts ]; then" >>~/.bashrc
-    echo "    . ~/.bash_scripts" >>~/.bashrc
-    echo "fi" >>~/.bashrc
-    echo "Collected scripts and configs"
-}
+setup() {
+    setup_libs
+    setup_aliases
+    setup_scripts
+    setup_packages
 
-install_cuda() {
-    echo "Installing Cuda..."
-
-    # TODO
-
-    # Look for newer versions:
-    # https://developer.nvidia.com/cuda-downloads?target_os=Linux&target_arch=x86_64&Distribution=WSL-Ubuntu&target_version=2.0&target_type=deb_local
-    # sudo apt-key del 7fa2af80
-
-    # wget https://developer.download.nvidia.com/compute/cuda/repos/wsl-ubuntu/x86_64/cuda-wsl-ubuntu.pin
-    # sudo mv cuda-wsl-ubuntu.pin /etc/apt/preferences.d/cuda-repository-pin-600
-    # wget https://developer.download.nvidia.com/compute/cuda/12.2.2/local_installers/cuda-repo-wsl-ubuntu-12-2-local_12.2.2-1_amd64.deb
-    # sudo dpkg -i cuda-repo-wsl-ubuntu-12-2-local_12.2.2-1_amd64.deb
-    # sudo cp /var/cuda-repo-wsl-ubuntu-12-2-local/cuda-*-keyring.gpg /usr/share/keyrings/
-    # sudo apt-get -qq update
-    # sudo apt-get -qq -y install cuda
-
-    # sudo rm cuda-repo-wsl-ubuntu-12-2-local_12.2.2-1_amd64.deb
-
-    # echo "Check if GPU is available: "
-    # nvidia-smi
-
-    # echo "Installed Cuda"
-}
-
-install_requirements() {
-    echo "Installing packages..."
-    REPO_NAME="useful-script-and-configs-ais"
-    cat $REPO_NAME/requirements_apt.txt | xargs sudo apt-get -qq install -y
-    echo "Installed packages"
-}
-
-install_chrome() {
-    echo "Installing Chrome..."
-
-    # TODO
-
-    # wget https://dl-ssl.google.com/linux/linux_signing_key.pub -O /tmp/google.pub
-    # sudo gpg --no-default-keyring --keyring /etc/apt/keyrings/google-chrome.gpg --import /tmp/google.pub
-    # echo 'deb [arch=amd64 signed-by=/etc/apt/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main' | sudo tee /etc/apt/sources.list.d/google-chrome.list
-    # sudo apt-get install google-chrome-stable
-    # echo "Installed Chrome"
+    ./scripts/disable_sudo_password.sh
+    ./scripts/disable_apt_marketing_message.sh
+    ./scripts/setup_git.sh
+    ./scripts/setup_ssh.sh
+    ./scripts/install_chrome.sh
 }
 
 main() {
-    disable_sudo_password
-    update
-    setup_git
-    setup_ssh
-    setup_configs
-    install_cuda
-    install_requirements
-    install_chrome
+    setup
 }
 
-main
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+    main "$@"
+fi
