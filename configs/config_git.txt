@@ -1,6 +1,6 @@
 [user]
 	name = Bertan Karacora
-	email = s6bekara@uni-bonn.de
+	email = bertan.karacora@gmail.com
 [pull]
 	rebase = true
 [core]
