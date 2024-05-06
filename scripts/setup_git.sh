@@ -4,7 +4,6 @@ set -euo pipefail
 
 source libs/system_utils.sh
 
-readonly path_credential_manager_windows="/mnt/c/Program Files/Git/mingw64/bin/git-credential-manager.exe"
 readonly rebase_recommended="true"
 readonly defaultbranch_recommended="main"
 readonly editor_recommended="code --wait"
@@ -49,13 +48,6 @@ configure_git_email() {
     git config --global user.email "$email"
 }
 
-configure_credential_helper_windows() {
-    if [[ -f "$path_credential_manager_windows" ]]; then
-        git config --global credential.helper "$path_credential_manager_windows"
-        echo "Git credential manager found in Windows: $path_credential_manager_windows"
-    fi
-}
-
 ask_yesno() {
     while true; do
         read -p "Do you wish to use the recommended settings? " yesno
@@ -87,7 +79,6 @@ configure_git() {
 
     configure_git_name
     configure_git_email
-    configure_credential_helper_windows
     configure_behavior
 
     echo "Configuring Git finished"
