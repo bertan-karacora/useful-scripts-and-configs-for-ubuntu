@@ -27,3 +27,10 @@ A collection of useful scripts and configs.
     ```bash
     sudo ./setup.sh
     ```
+
+
+## TODO
+
+- autmate stuff from resources
+- Add ros2 install
+- Add rviz stuff (apptainer singularity)
