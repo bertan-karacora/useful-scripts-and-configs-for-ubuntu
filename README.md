@@ -1,4 +1,4 @@
-# Useful scripts and configs for my setup at the AIS group at the University of Bonn
+# Useful scripts and configs for ubuntu
 
 A collection of useful scripts and configs.
 
@@ -9,16 +9,16 @@ A collection of useful scripts and configs.
     ```bash
     cd ~
     sudo apt install wget
-    wget https://github.com/bertan-karacora/useful-scripts-and-configs-ais/archive/refs/heads/main.zip
+    wget https://github.com/bertan-karacora/useful-scripts-and-configs-ubuntu/archive/refs/heads/main.zip
     unzip main.zip
     rm main.zip
-    mv useful-scripts-and-configs-ais-main useful-scripts-and-configs-ais
+    mv useful-scripts-and-configs-ais-main useful-scripts-and-configs-ubuntu
     ```
 
 2. Make sure to give execution permission for setup script using
 
     ```bash
-    cd useful-scripts-and-configs-ais
+    cd useful-scripts-and-configs-ubuntu
     chmod +x setup.sh
     ```
 
@@ -27,10 +27,3 @@ A collection of useful scripts and configs.
     ```bash
     sudo ./setup.sh
     ```
-
-
-## TODO
-
-- autmate stuff from resources
-- Add ros2 install
-- Add rviz stuff (apptainer singularity)
